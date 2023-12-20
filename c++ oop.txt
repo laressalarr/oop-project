@@ -1,0 +1,360 @@
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class CarManager;
+
+class Car
+{
+private:
+    static int nextVin;
+    int vin;
+    string make;
+    string model;
+    double price;
+    int year;
+
+public:
+    Car(string make, string model, double price, int year)
+        : vin(nextVin++), make(make), model(model), price(price), year(year) {}
+
+    int getVin() const { return vin; }
+    string getMake() const { return make; }
+    string getModel() const { return model; }
+    double getPrice() const { return price; }
+    int getYear() const { return year; }
+
+    void displayCarDetails() const
+    {
+        cout << "ID: " << vin << "\tMake: " << make << "\tModel: " << model
+             << "\tYear: " << year << "\tPrice: " << price << endl;
+    }
+
+    void addCarFromUserInput(CarManager &carManager);
+    void deleteCarFromUserInput(CarManager &carManager);
+    void updateCarFromUserInput(CarManager &carManager);
+};
+
+int Car::nextVin = 1;
+
+class CarManager
+{
+private:
+    vector<Car> cars;
+
+public:
+    void addCar(const Car &car)
+    {
+        cars.push_back(car);
+        cout << "Car added successfully!" << endl;
+    }
+
+    void deleteCar(int vin)
+    {
+        auto it = find_if(cars.begin(), cars.end(),
+                          [vin](const Car &car)
+                          { return car.getVin() == vin; });
+
+        if (it != cars.end())
+        {
+            cars.erase(it);
+            cout << "Car deleted successfully!" << endl;
+        }
+        else
+        {
+            cout << "Car not found with ID: " << vin << endl;
+        }
+    }
+
+    void displayAllCars() const
+    {
+        for (const Car &car : cars)
+        {
+            car.displayCarDetails();
+        }
+    }
+
+    Car *findCarByVin(int vin)
+    {
+        auto it = find_if(cars.begin(), cars.end(),
+                          [vin](const Car &car)
+                          { return car.getVin() == vin; });
+
+        return (it != cars.end()) ? &(*it) : nullptr;
+    }
+
+    void searchCars(const string &attribute, const string &value)
+    {
+        for (const Car &car : cars)
+        {
+            if ((attribute == "make" && car.getMake() == value) ||
+                (attribute == "model" && car.getModel() == value) ||
+                (attribute == "year" && to_string(car.getYear()) == value))
+            {
+                car.displayCarDetails();
+            }
+        }
+    }
+
+    void manageCars();
+
+private:
+    void addCarFromUserInput();
+    void deleteCarFromUserInput();
+};
+
+void Car::addCarFromUserInput(CarManager &carManager)
+{
+    string make, model;
+    double price;
+    int year;
+
+    cout << "Enter the make: ";
+    cin >> make;
+
+    cout << "Enter the model: ";
+    cin >> model;
+
+    cout << "Enter the year: ";
+    cin >> year;
+
+    cout << "Enter the price: ";
+    cin >> price;
+
+    Car newCar(make, model, price, year);
+    carManager.addCar(newCar);
+}
+
+void Car::deleteCarFromUserInput(CarManager &carManager)
+{
+    int vin;
+    cout << "Enter the VIN of the car to delete: ";
+    cin >> vin;
+    carManager.deleteCar(vin);
+}
+
+void Car::updateCarFromUserInput(CarManager &carManager)
+{
+    int vin;
+    cout << "Enter the VIN of the car to update: ";
+    cin >> vin;
+
+    Car *carToUpdate = carManager.findCarByVin(vin);
+
+    if (carToUpdate != nullptr)
+    {
+        cout << "Enter the new make: ";
+        cin >> carToUpdate->make;
+
+        cout << "Enter the new model: ";
+        cin >> carToUpdate->model;
+
+        cout << "Enter the new year: ";
+        cin >> carToUpdate->year;
+
+        cout << "Enter the new price: ";
+        cin >> carToUpdate->price;
+
+        cout << "Car updated successfully!" << endl;
+    }
+    else
+    {
+        cout << "Car not found with VIN: " << vin << endl;
+    }
+}
+
+void CarManager::addCarFromUserInput()
+{
+    string make, model;
+    double price;
+    int year;
+
+    cout << "Enter the make: ";
+    cin >> make;
+
+    cout << "Enter the model: ";
+    cin >> model;
+
+    cout << "Enter the year: ";
+    cin >> year;
+
+    cout << "Enter the price: ";
+    cin >> price;
+
+    Car newCar(make, model, price, year);
+    addCar(newCar);
+}
+
+void CarManager::deleteCarFromUserInput()
+{
+    int vin;
+    cout << "Enter the VIN of the car to delete: ";
+    cin >> vin;
+    deleteCar(vin);
+}
+
+void CarManager::manageCars()
+{
+    string searchAttribute;
+    string searchValue;
+
+    while (true)
+    {
+        cout << "Car Management Menu:" << endl;
+        cout << "1. Add Car" << endl;
+        cout << "2. Delete Car" << endl;
+        cout << "3. View All Cars" << endl;
+        cout << "4. Search Cars" << endl;
+        cout << "5. Go Back" << endl;
+
+        cout << "Enter your choice: ";
+        int carChoice;
+        cin >> carChoice;
+
+        switch (carChoice)
+        {
+        case 1:
+            addCarFromUserInput();
+            break;
+        case 2:
+            deleteCarFromUserInput();
+            break;
+        case 3:
+            displayAllCars();
+            break;
+        case 4:
+            cout << "Enter the attribute to search by (make, model, year): ";
+            cin >> searchAttribute;
+
+            cout << "Enter the value to search for: ";
+            cin >> searchValue;
+
+            searchCars(searchAttribute, searchValue);
+            break;
+        case 5:
+            return;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+        }
+    }
+}
+
+class SUV : public Car
+{
+private:
+    bool offRoadCapability;
+    int seatingCapacity;
+
+public:
+    SUV(string make, string model, double price, int year,
+        bool offRoadCapability, int seatingCapacity)
+        : Car(make, model, price, year), offRoadCapability(offRoadCapability),
+          seatingCapacity(seatingCapacity) {}
+
+    bool getOffRoadCapability() const
+    {
+        return offRoadCapability;
+    }
+
+    void setOffRoadCapability(bool offRoadCapability)
+    {
+        this->offRoadCapability = offRoadCapability;
+    }
+
+    int getSeatingCapacity() const
+    {
+        return seatingCapacity;
+    }
+
+    void setSeatingCapacity(int seatingCapacity)
+    {
+        this->seatingCapacity = seatingCapacity;
+    }
+};
+
+class Sedan : public Car
+{
+private:
+    double trunkSize;
+
+public:
+    Sedan(string make, string model, double price, int year, double trunkSize)
+        : Car(make, model, price, year), trunkSize(trunkSize) {}
+
+    double getTrunkSize() const
+    {
+        return trunkSize;
+    }
+
+    void setTrunkSize(double trunkSize)
+    {
+        this->trunkSize = trunkSize;
+    }
+};
+
+class Van : public Car
+{
+private:
+    double cargoCapacity;
+    bool slidingDoor;
+
+public:
+    Van(string make, string model, double price, int year,
+        double cargoCapacity, bool slidingDoor)
+        : Car(make, model, price, year), cargoCapacity(cargoCapacity),
+          slidingDoor(slidingDoor) {}
+
+    double getCargoCapacity() const
+    {
+        return cargoCapacity;
+    }
+
+    void setCargoCapacity(double cargoCapacity)
+    {
+        this->cargoCapacity = cargoC
+apacity;
+    }
+
+    bool getSlidingDoor() const
+    {
+        return slidingDoor;
+    }
+
+    void setSlidingDoor(bool slidingDoor)
+    {
+        this->slidingDoor = slidingDoor;
+    }
+};
+
+int main()
+{
+    CarManager carManager;
+
+    while (true)
+    {
+        cout << "Main Menu:" << endl;
+        cout << "1. Car Manager" << endl;
+        cout << "2. Exit" << endl;
+        cout << "Enter your choice: ";
+
+        int mainChoice;
+        cin >> mainChoice;
+
+        switch (mainChoice)
+        {
+        case 1:
+            carManager.manageCars();
+            break;
+        case 2:
+            cout << "Exiting program. Goodbye!" << endl;
+            return 0;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+        }
+    }
+
+    return 0;
+}
